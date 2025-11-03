@@ -43,6 +43,6 @@ enableLinkClickTracking()
 
 // Enable activity tracking (page pings)
 enableActivityTracking({
-  minimumVisitLength: 30,
+  minimumVisitLength: 15,
   heartbeatDelay: 15,
 })

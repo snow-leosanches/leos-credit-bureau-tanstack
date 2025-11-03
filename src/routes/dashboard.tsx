@@ -24,6 +24,7 @@ import {
 import VerySlowFeature from '../components/dashboard/VerySlowFeature'
 import { snowplowTracker } from '../lib/snowplow'
 import { SorryAboutDelayModal } from '@/components/dashboard/SorryAboutDelayModal';
+import { ChatbotWidget } from '@/components/dashboard/ChatbotWidget';
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
@@ -97,6 +98,7 @@ function Dashboard() {
   const [customerId, setCustomerId] = useState<number | null>(null)
   const [creditData, setCreditData] = useState<ReturnType<typeof getCreditData> | null>(null)
   const [sorryAboutDelayModal, setSorryAboutDelayModal] = useState(false)
+  const [showChatbot, setShowChatbot] = useState(false)
 
   useEffect(() => {
     // Check if user is authenticated
@@ -129,6 +131,10 @@ function Dashboard() {
         switch (intervention.name) {
           case 'leos_credit_bureau_rage_clicks_calm_down':
             setSorryAboutDelayModal(true)
+            break;
+          case 'leos_credit_bureau_idle_promo':
+            console.log('leos_credit_bureau_idle_promo intervention received!')
+            setShowChatbot(true)
             break;
           default:
             console.log('intervention received!', intervention);
@@ -374,6 +380,7 @@ function Dashboard() {
 
             <VerySlowFeature />
             <SorryAboutDelayModal isOpen={sorryAboutDelayModal} onClose={() => setSorryAboutDelayModal(false)} />
+            <ChatbotWidget isOpen={showChatbot} onClose={() => setShowChatbot(false)} />
           </div>
         </div>
       </div>
