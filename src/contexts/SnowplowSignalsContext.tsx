@@ -13,7 +13,7 @@ interface SnowplowSignalsProviderProps {
 export const SnowplowSignalsProvider = ({ children }: SnowplowSignalsProviderProps) => {
   // Initialize the Signals instance
   const signals = useMemo(() => {
-    const baseUrl = import.meta.env.VITE_SNOWPLOW_SIGNALS_BASE_URL
+    const baseUrl = import.meta.env.VITE_SNOWPLOW_SIGNALS_ENDPOINT
     const apiKey = import.meta.env.VITE_SNOWPLOW_SIGNALS_API_KEY
     const apiKeyId = import.meta.env.VITE_SNOWPLOW_SIGNALS_API_KEY_ID
     const organizationId = import.meta.env.VITE_SNOWPLOW_SIGNALS_ORG_ID

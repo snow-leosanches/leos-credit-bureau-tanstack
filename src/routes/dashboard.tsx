@@ -25,6 +25,7 @@ import VerySlowFeature from '../components/dashboard/VerySlowFeature'
 import { snowplowTracker } from '../lib/snowplow'
 import { SorryAboutDelayModal } from '@/components/dashboard/SorryAboutDelayModal';
 import { ChatbotWidget } from '@/components/dashboard/ChatbotWidget';
+import { useSnowplowSignalsOptional } from '@/contexts/SnowplowSignalsContext';
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
@@ -95,10 +96,37 @@ function getCreditData(customerId: number) {
 
 function Dashboard() {
   const navigate = useNavigate()
+  const signals = useSnowplowSignalsOptional()
+  
   const [customerId, setCustomerId] = useState<number | null>(null)
   const [creditData, setCreditData] = useState<ReturnType<typeof getCreditData> | null>(null)
   const [sorryAboutDelayModal, setSorryAboutDelayModal] = useState(false)
   const [showChatbot, setShowChatbot] = useState(false)
+
+  let [customerAttributes, setCustomerAttributes] = useState<Record<string, unknown>>({})
+
+  useEffect(() => {
+    if (signals && snowplowTracker) {
+      // Get the current domain_sessionid from the Snowplow tracker
+      const domainUserInfo = snowplowTracker.getDomainUserInfo()
+      const domainSessionId = domainUserInfo?.[6] // sessionId is at index 6
+      console.log('domainSessionId', domainSessionId)
+
+      if (domainSessionId) {
+        signals.getServiceAttributes({
+          attribute_key: "domain_sessionid",
+          identifier: domainSessionId,
+          name: "leos_credit_bureau_service",
+        }).then((attributes) => {
+          setCustomerAttributes(attributes)
+        }).catch((error) => {
+          console.error('Failed to get service attributes:', error)
+        })
+      } else {
+        console.warn('Domain session ID not available yet')
+      }
+    }
+  }, [signals])
 
   useEffect(() => {
     // Check if user is authenticated
