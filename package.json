@@ -21,6 +21,7 @@
     "@snowplow/browser-plugin-snowplow-ecommerce": "^4.6.8",
     "@snowplow/browser-tracker": "^4.6.8",
     "@snowplow/signals-browser-plugin": "^0.2.0",
+    "@snowplow/signals-node": "^0.2.0",
     "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-devtools": "^0.7.0",
     "@tanstack/react-router": "^1.132.0",

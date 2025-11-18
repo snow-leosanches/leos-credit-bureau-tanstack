@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 
 import { useState } from 'react'
 import {
@@ -7,18 +7,59 @@ import {
   Home,
   LayoutDashboard,
   Lock,
+  LogOut,
   Menu,
   Network,
   SquareFunction,
   StickyNote,
   X,
 } from 'lucide-react'
+import { clearUserData } from '@snowplow/browser-tracker'
 
 export default function Header() {
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [groupedExpanded, setGroupedExpanded] = useState<
     Record<string, boolean>
   >({})
+
+  const handleLogout = () => {
+    // Get customerId before clearing it
+    const customerId = localStorage.getItem('authenticatedCustomer')
+    
+    // Clear boost-related data for the current customer
+    if (customerId) {
+      localStorage.removeItem(`boostAccounts_${customerId}`)
+      localStorage.removeItem(`boostBills_${customerId}`)
+      localStorage.removeItem(`boostPeriod_${customerId}`)
+      localStorage.removeItem(`creditBoost_${customerId}`)
+    }
+    
+    // Clear all boost data (in case customerId wasn't available)
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('boostAccounts_') || 
+          key.startsWith('boostBills_') || 
+          key.startsWith('boostPeriod_') || 
+          key.startsWith('creditBoost_')) {
+        localStorage.removeItem(key)
+      }
+    })
+    
+    // Clear authentication data
+    localStorage.removeItem('isAuthenticated')
+    localStorage.removeItem('authenticatedCustomer')
+    localStorage.removeItem('authenticatedCustomerName')
+    localStorage.removeItem('authenticatedCustomerEmail')
+    
+    // Clear Snowplow user data
+    clearUserData()
+    
+    // Close navigation panel
+    setIsOpen(false)
+    
+    // Navigate to login
+    navigate({ to: '/login' })
+  }
 
   return (
     <>
@@ -195,6 +236,17 @@ export default function Header() {
 
           {/* Demo Links End */}
         </nav>
+
+        {/* Logout Button */}
+        <div className="p-4 border-t border-gray-700">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-red-600/20 text-red-400 hover:text-red-300 transition-colors"
+          >
+            <LogOut size={20} />
+            <span className="font-medium">Logout</span>
+          </button>
+        </div>
       </aside>
     </>
   )

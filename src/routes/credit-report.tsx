@@ -9,8 +9,6 @@ import {
   ArrowLeft,
   TrendingUp,
   CheckCircle2,
-  XCircle,
-  AlertCircle,
   Zap,
   Smartphone,
   Home,
@@ -258,7 +256,7 @@ function CreditReport() {
     }
 
     // Track page view
-    snowplowTracker.trackPageView()
+    snowplowTracker?.trackPageView()
   }, [navigate])
 
   if (!reportData || !customerId) {
@@ -336,14 +334,14 @@ function CreditReport() {
 
   const handleCreditBoostingSignup = () => {
     // Track ecommerce add to cart event (service signup)
-    snowplowTracker.trackAddToCart({
+    /* snowplowTracker?.trackAddToCart({
       id: `credit_boosting_${customerId}`,
       name: 'Credit Boosting Service',
       category: 'Credit Services',
       price: 0,
       quantity: 1,
       currency: 'USD',
-    })
+    }) */
 
     // Navigate to the score boost step 1
     navigate({ to: '/score-boost/step-1' })

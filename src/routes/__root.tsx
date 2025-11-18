@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 
 import Header from '../components/Header'
 import '../lib/snowplow'
+import { SnowplowSignalsProvider } from '../contexts/SnowplowSignalsContext'
 
 import appCss from '../styles.css?url'
 
@@ -45,19 +46,21 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <Header />
-        {children}
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
+        <SnowplowSignalsProvider>
+          <Header />
+          {children}
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+        </SnowplowSignalsProvider>
         <Scripts />
       </body>
     </html>

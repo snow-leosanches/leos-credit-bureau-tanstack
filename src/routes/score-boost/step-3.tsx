@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, Building2, FileText, Bell } from 'lucide-react'
 import { snowplowTracker } from '../../lib/snowplow'
+import { trackCreditBoostStepSpec } from '../../../snowtype/snowplow'
 import { BankAccount, Bill, BoostData, BillData } from './types'
 import { calculateBoostAmount, restoreBillsFromStorage } from './types'
 
@@ -76,6 +77,15 @@ function Step3() {
       } catch (e) {
         console.error('Error tracking page view:', e)
       }
+    }
+
+    // Track Credit Boost Step event
+    try {
+      trackCreditBoostStepSpec({
+        step_number: 3,
+      })
+    } catch (e) {
+      console.error('Error tracking credit boost step:', e)
     }
   }, [navigate])
 
