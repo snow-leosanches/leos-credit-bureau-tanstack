@@ -19,6 +19,7 @@ import { Route as ScoreBoostStep3RouteImport } from './routes/score-boost/step-3
 import { Route as ScoreBoostStep2RouteImport } from './routes/score-boost/step-2'
 import { Route as ScoreBoostStep1RouteImport } from './routes/score-boost/step-1'
 import { Route as ScoreBoostConclusionRouteImport } from './routes/score-boost/conclusion'
+import { Route as ApiServiceAttributesRouteImport } from './routes/api/service-attributes'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
@@ -77,6 +78,11 @@ const ScoreBoostConclusionRoute = ScoreBoostConclusionRouteImport.update({
   path: '/score-boost/conclusion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiServiceAttributesRoute = ApiServiceAttributesRouteImport.update({
+  id: '/api/service-attributes',
+  path: '/api/service-attributes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
   id: '/demo/start/server-funcs',
   path: '/demo/start/server-funcs',
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/identity-protection': typeof IdentityProtectionRoute
   '/login': typeof LoginRoute
+  '/api/service-attributes': typeof ApiServiceAttributesRoute
   '/score-boost/conclusion': typeof ScoreBoostConclusionRoute
   '/score-boost/step-1': typeof ScoreBoostStep1Route
   '/score-boost/step-2': typeof ScoreBoostStep2Route
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/identity-protection': typeof IdentityProtectionRoute
   '/login': typeof LoginRoute
+  '/api/service-attributes': typeof ApiServiceAttributesRoute
   '/score-boost/conclusion': typeof ScoreBoostConclusionRoute
   '/score-boost/step-1': typeof ScoreBoostStep1Route
   '/score-boost/step-2': typeof ScoreBoostStep2Route
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/identity-protection': typeof IdentityProtectionRoute
   '/login': typeof LoginRoute
+  '/api/service-attributes': typeof ApiServiceAttributesRoute
   '/score-boost/conclusion': typeof ScoreBoostConclusionRoute
   '/score-boost/step-1': typeof ScoreBoostStep1Route
   '/score-boost/step-2': typeof ScoreBoostStep2Route
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/identity-protection'
     | '/login'
+    | '/api/service-attributes'
     | '/score-boost/conclusion'
     | '/score-boost/step-1'
     | '/score-boost/step-2'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/identity-protection'
     | '/login'
+    | '/api/service-attributes'
     | '/score-boost/conclusion'
     | '/score-boost/step-1'
     | '/score-boost/step-2'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/identity-protection'
     | '/login'
+    | '/api/service-attributes'
     | '/score-boost/conclusion'
     | '/score-boost/step-1'
     | '/score-boost/step-2'
@@ -237,6 +249,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   IdentityProtectionRoute: typeof IdentityProtectionRoute
   LoginRoute: typeof LoginRoute
+  ApiServiceAttributesRoute: typeof ApiServiceAttributesRoute
   ScoreBoostConclusionRoute: typeof ScoreBoostConclusionRoute
   ScoreBoostStep1Route: typeof ScoreBoostStep1Route
   ScoreBoostStep2Route: typeof ScoreBoostStep2Route
@@ -323,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScoreBoostConclusionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/service-attributes': {
+      id: '/api/service-attributes'
+      path: '/api/service-attributes'
+      fullPath: '/api/service-attributes'
+      preLoaderRoute: typeof ApiServiceAttributesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/start/server-funcs': {
       id: '/demo/start/server-funcs'
       path: '/demo/start/server-funcs'
@@ -381,6 +401,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   IdentityProtectionRoute: IdentityProtectionRoute,
   LoginRoute: LoginRoute,
+  ApiServiceAttributesRoute: ApiServiceAttributesRoute,
   ScoreBoostConclusionRoute: ScoreBoostConclusionRoute,
   ScoreBoostStep1Route: ScoreBoostStep1Route,
   ScoreBoostStep2Route: ScoreBoostStep2Route,

@@ -12,9 +12,10 @@ import {
   User,
   Eye,
   Lock,
+  Sparkles,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useLocation } from '@tanstack/react-router'
 import { 
   addInterventionHandlers, 
   Intervention, 
@@ -25,7 +26,6 @@ import VerySlowFeature from '../components/dashboard/VerySlowFeature'
 import { snowplowTracker } from '../lib/snowplow'
 import { SorryAboutDelayModal } from '@/components/dashboard/SorryAboutDelayModal';
 import { ChatbotWidget } from '@/components/dashboard/ChatbotWidget';
-import { useSnowplowSignalsOptional } from '@/contexts/SnowplowSignalsContext';
 
 export const Route = createFileRoute('/dashboard')({
   component: Dashboard,
@@ -96,7 +96,7 @@ function getCreditData(customerId: number) {
 
 function Dashboard() {
   const navigate = useNavigate()
-  const signals = useSnowplowSignalsOptional()
+  const location = useLocation()
   
   const [customerId, setCustomerId] = useState<number | null>(null)
   const [creditData, setCreditData] = useState<ReturnType<typeof getCreditData> | null>(null)
@@ -106,27 +106,38 @@ function Dashboard() {
   let [customerAttributes, setCustomerAttributes] = useState<Record<string, unknown>>({})
 
   useEffect(() => {
-    if (signals && snowplowTracker) {
+    if (snowplowTracker) {
       // Get the current domain_sessionid from the Snowplow tracker
       const domainUserInfo = snowplowTracker.getDomainUserInfo()
       const domainSessionId = domainUserInfo?.[6] // sessionId is at index 6
       console.log('domainSessionId', domainSessionId)
 
       if (domainSessionId) {
-        signals.getServiceAttributes({
+        // Call the API route instead of using signals directly
+        const params = new URLSearchParams({
           attribute_key: "domain_sessionid",
           identifier: domainSessionId,
           name: "leos_credit_bureau_service",
-        }).then((attributes) => {
-          setCustomerAttributes(attributes)
-        }).catch((error) => {
-          console.error('Failed to get service attributes:', error)
         })
+
+        fetch(`/api/service-attributes?${params.toString()}`)
+          .then((res) => {
+            if (!res.ok) {
+              throw new Error(`Failed to fetch service attributes: ${res.statusText}`)
+            }
+            return res.json()
+          })
+          .then((attributes) => {
+            setCustomerAttributes(attributes)
+          })
+          .catch((error) => {
+            console.error('Failed to get service attributes:', error)
+          })
       } else {
         console.warn('Domain session ID not available yet')
       }
     }
-  }, [signals])
+  }, [location.href]) // Re-run when navigating to/back to this route (location.href changes on each navigation)
 
   useEffect(() => {
     // Check if user is authenticated
@@ -230,6 +241,14 @@ function Dashboard() {
     return <Shield className="w-5 h-5 text-cyan-400" />
   }
 
+  // Get the last credit boost step from customer attributes
+  const lastCreditBoostStep = customerAttributes?.last_credit_boost_step
+  const stepNumber = typeof lastCreditBoostStep === 'string' 
+    ? parseInt(lastCreditBoostStep, 10) 
+    : typeof lastCreditBoostStep === 'number' 
+    ? lastCreditBoostStep 
+    : null
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-8 px-6">
       <div className="max-w-7xl mx-auto">
@@ -240,6 +259,57 @@ function Dashboard() {
           </h1>
           <p className="text-gray-400">View and manage your credit information</p>
         </div>
+
+        {/* Credit Boost Continuation Banner */}
+        {stepNumber === 1 && (
+          <div className="mb-6 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-6 backdrop-blur-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <Sparkles className="w-6 h-6 text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-white font-semibold text-lg mb-2">
+                  Continue Your Credit Boost Setup
+                </h3>
+                <p className="text-gray-300 mb-4">
+                  You're two steps closer to getting your credit boost set up. Click here to return to your credit boost setup.
+                </p>
+                <button
+                  onClick={() => navigate({ to: '/score-boost/step-2' })}
+                  className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-purple-500/50 flex items-center gap-2"
+                >
+                  Continue Setup
+                  <ArrowUpRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {stepNumber === 2 && (
+          <div className="mb-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-6 backdrop-blur-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <Sparkles className="w-6 h-6 text-green-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-white font-semibold text-lg mb-2">
+                  Finish Your Credit Boost Setup
+                </h3>
+                <p className="text-gray-300 mb-4">
+                  You are only one step away from setting up your credit score boost. Click here to finish your setup!
+                </p>
+                <button
+                  onClick={() => navigate({ to: '/score-boost/step-3' })}
+                  className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-green-500/50 flex items-center gap-2"
+                >
+                  Complete Setup
+                  <ArrowUpRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Credit Report and FICO® Score Section */}
