@@ -9,12 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ScoreBoostRouteImport } from './routes/score-boost'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IdentityProtectionRouteImport } from './routes/identity-protection'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CreditReportRouteImport } from './routes/credit-report'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ScoreBoostIndexRouteImport } from './routes/score-boost/index'
+import { Route as ScoreBoostStep3RouteImport } from './routes/score-boost/step-3'
+import { Route as ScoreBoostStep2RouteImport } from './routes/score-boost/step-2'
+import { Route as ScoreBoostStep1RouteImport } from './routes/score-boost/step-1'
+import { Route as ScoreBoostConclusionRouteImport } from './routes/score-boost/conclusion'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoApiNamesRouteImport } from './routes/demo/api.names'
@@ -23,11 +27,6 @@ import { Route as DemoStartSsrSpaModeRouteImport } from './routes/demo/start.ssr
 import { Route as DemoStartSsrFullSsrRouteImport } from './routes/demo/start.ssr.full-ssr'
 import { Route as DemoStartSsrDataOnlyRouteImport } from './routes/demo/start.ssr.data-only'
 
-const ScoreBoostRoute = ScoreBoostRouteImport.update({
-  id: '/score-boost',
-  path: '/score-boost',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -51,6 +50,31 @@ const CreditReportRoute = CreditReportRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScoreBoostIndexRoute = ScoreBoostIndexRouteImport.update({
+  id: '/score-boost/',
+  path: '/score-boost/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScoreBoostStep3Route = ScoreBoostStep3RouteImport.update({
+  id: '/score-boost/step-3',
+  path: '/score-boost/step-3',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScoreBoostStep2Route = ScoreBoostStep2RouteImport.update({
+  id: '/score-boost/step-2',
+  path: '/score-boost/step-2',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScoreBoostStep1Route = ScoreBoostStep1RouteImport.update({
+  id: '/score-boost/step-1',
+  path: '/score-boost/step-1',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScoreBoostConclusionRoute = ScoreBoostConclusionRouteImport.update({
+  id: '/score-boost/conclusion',
+  path: '/score-boost/conclusion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
@@ -95,7 +119,11 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/identity-protection': typeof IdentityProtectionRoute
   '/login': typeof LoginRoute
-  '/score-boost': typeof ScoreBoostRoute
+  '/score-boost/conclusion': typeof ScoreBoostConclusionRoute
+  '/score-boost/step-1': typeof ScoreBoostStep1Route
+  '/score-boost/step-2': typeof ScoreBoostStep2Route
+  '/score-boost/step-3': typeof ScoreBoostStep3Route
+  '/score-boost': typeof ScoreBoostIndexRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -110,7 +138,11 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/identity-protection': typeof IdentityProtectionRoute
   '/login': typeof LoginRoute
-  '/score-boost': typeof ScoreBoostRoute
+  '/score-boost/conclusion': typeof ScoreBoostConclusionRoute
+  '/score-boost/step-1': typeof ScoreBoostStep1Route
+  '/score-boost/step-2': typeof ScoreBoostStep2Route
+  '/score-boost/step-3': typeof ScoreBoostStep3Route
+  '/score-boost': typeof ScoreBoostIndexRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -126,7 +158,11 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/identity-protection': typeof IdentityProtectionRoute
   '/login': typeof LoginRoute
-  '/score-boost': typeof ScoreBoostRoute
+  '/score-boost/conclusion': typeof ScoreBoostConclusionRoute
+  '/score-boost/step-1': typeof ScoreBoostStep1Route
+  '/score-boost/step-2': typeof ScoreBoostStep2Route
+  '/score-boost/step-3': typeof ScoreBoostStep3Route
+  '/score-boost/': typeof ScoreBoostIndexRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/start/api-request': typeof DemoStartApiRequestRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -143,6 +179,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/identity-protection'
     | '/login'
+    | '/score-boost/conclusion'
+    | '/score-boost/step-1'
+    | '/score-boost/step-2'
+    | '/score-boost/step-3'
     | '/score-boost'
     | '/demo/api/names'
     | '/demo/start/api-request'
@@ -158,6 +198,10 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/identity-protection'
     | '/login'
+    | '/score-boost/conclusion'
+    | '/score-boost/step-1'
+    | '/score-boost/step-2'
+    | '/score-boost/step-3'
     | '/score-boost'
     | '/demo/api/names'
     | '/demo/start/api-request'
@@ -173,7 +217,11 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/identity-protection'
     | '/login'
-    | '/score-boost'
+    | '/score-boost/conclusion'
+    | '/score-boost/step-1'
+    | '/score-boost/step-2'
+    | '/score-boost/step-3'
+    | '/score-boost/'
     | '/demo/api/names'
     | '/demo/start/api-request'
     | '/demo/start/server-funcs'
@@ -189,7 +237,11 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   IdentityProtectionRoute: typeof IdentityProtectionRoute
   LoginRoute: typeof LoginRoute
-  ScoreBoostRoute: typeof ScoreBoostRoute
+  ScoreBoostConclusionRoute: typeof ScoreBoostConclusionRoute
+  ScoreBoostStep1Route: typeof ScoreBoostStep1Route
+  ScoreBoostStep2Route: typeof ScoreBoostStep2Route
+  ScoreBoostStep3Route: typeof ScoreBoostStep3Route
+  ScoreBoostIndexRoute: typeof ScoreBoostIndexRoute
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoStartApiRequestRoute: typeof DemoStartApiRequestRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
@@ -201,13 +253,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/score-boost': {
-      id: '/score-boost'
-      path: '/score-boost'
-      fullPath: '/score-boost'
-      preLoaderRoute: typeof ScoreBoostRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -241,6 +286,41 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/score-boost/': {
+      id: '/score-boost/'
+      path: '/score-boost'
+      fullPath: '/score-boost'
+      preLoaderRoute: typeof ScoreBoostIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/score-boost/step-3': {
+      id: '/score-boost/step-3'
+      path: '/score-boost/step-3'
+      fullPath: '/score-boost/step-3'
+      preLoaderRoute: typeof ScoreBoostStep3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/score-boost/step-2': {
+      id: '/score-boost/step-2'
+      path: '/score-boost/step-2'
+      fullPath: '/score-boost/step-2'
+      preLoaderRoute: typeof ScoreBoostStep2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/score-boost/step-1': {
+      id: '/score-boost/step-1'
+      path: '/score-boost/step-1'
+      fullPath: '/score-boost/step-1'
+      preLoaderRoute: typeof ScoreBoostStep1RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/score-boost/conclusion': {
+      id: '/score-boost/conclusion'
+      path: '/score-boost/conclusion'
+      fullPath: '/score-boost/conclusion'
+      preLoaderRoute: typeof ScoreBoostConclusionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/start/server-funcs': {
@@ -301,7 +381,11 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   IdentityProtectionRoute: IdentityProtectionRoute,
   LoginRoute: LoginRoute,
-  ScoreBoostRoute: ScoreBoostRoute,
+  ScoreBoostConclusionRoute: ScoreBoostConclusionRoute,
+  ScoreBoostStep1Route: ScoreBoostStep1Route,
+  ScoreBoostStep2Route: ScoreBoostStep2Route,
+  ScoreBoostStep3Route: ScoreBoostStep3Route,
+  ScoreBoostIndexRoute: ScoreBoostIndexRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoStartApiRequestRoute: DemoStartApiRequestRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,

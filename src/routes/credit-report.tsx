@@ -11,6 +11,12 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Zap,
+  Smartphone,
+  Home,
+  Wifi,
+  Shield,
+  Lightbulb,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { snowplowTracker } from '../lib/snowplow'
@@ -205,11 +211,20 @@ function getCreditReportData(customerId: number) {
   return reports[customerId as keyof typeof reports] || reports[2]
 }
 
+interface BoostData {
+  bankAccounts: Array<{ name: string; type: string; last4: string }>
+  bills: Array<{ name: string; provider: string; payments: number; icon?: string }>
+  periodMonths: number
+  boostAmount: number
+  completedAt: string
+}
+
 function CreditReport() {
   const navigate = useNavigate()
   const [customerId, setCustomerId] = useState<number | null>(null)
   const [reportData, setReportData] = useState<ReturnType<typeof getCreditReportData> | null>(null)
   const [showCreditBoosting, setShowCreditBoosting] = useState(false)
+  const [boostData, setBoostData] = useState<BoostData | null>(null)
 
   useEffect(() => {
     // Check if user is authenticated
@@ -226,8 +241,19 @@ function CreditReport() {
     const data = getCreditReportData(customerIdNum)
     setReportData(data)
 
-    // Show credit boosting for scores below 700
-    if (data.ficoScore < 700) {
+    // Check for existing boost data
+    const storedBoostData = localStorage.getItem(`creditBoost_${customerIdNum}`)
+    if (storedBoostData) {
+      try {
+        const parsed = JSON.parse(storedBoostData)
+        setBoostData(parsed)
+      } catch (e) {
+        console.error('Error parsing boost data:', e)
+      }
+    }
+
+    // Show credit boosting for scores below 700 and if no boost data exists
+    if (data.ficoScore < 700 && !storedBoostData) {
       setShowCreditBoosting(true)
     }
 
@@ -259,6 +285,55 @@ function CreditReport() {
     return 'text-red-400'
   }
 
+  const getBillIcon = (billName: string) => {
+    const iconMap: { [key: string]: any } = {
+      'Electricity Bill': Zap,
+      'Internet Service': Wifi,
+      'Mobile Phone': Smartphone,
+      'Rent Payment': Home,
+      'Auto Insurance': Shield,
+    }
+    return iconMap[billName] || FileText
+  }
+
+  const generateRecommendations = (boostData: BoostData | null, reportData: ReturnType<typeof getCreditReportData>) => {
+    const recommendations: string[] = []
+    
+    if (!boostData) return recommendations
+
+    // Based on number of bills
+    if (boostData.bills.length < 3) {
+      recommendations.push('Connect additional accounts to find more bill payment history')
+    }
+
+    // Based on period
+    if (boostData.periodMonths < 12) {
+      recommendations.push('Continue making on-time payments to build a longer payment history')
+    }
+
+    // Based on credit utilization
+    if (reportData.creditCardUsage.utilization > 30) {
+      recommendations.push('Reduce credit card utilization to below 30% for better credit score impact')
+    }
+
+    // Based on payment history
+    if (reportData.paymentHistory.onTimePayments < 95) {
+      recommendations.push('Maintain consistent on-time payments on all accounts')
+    }
+
+    // Based on number of accounts
+    if (reportData.totalAccounts.open < 5) {
+      recommendations.push('Consider adding a mix of credit types to diversify your credit profile')
+    }
+
+    // Always add a positive one
+    if (boostData.bills.length >= 3) {
+      recommendations.push('Keep your connected bills active and continue paying on time to maintain your boost')
+    }
+
+    return recommendations.slice(0, 5) // Limit to 5 recommendations
+  }
+
   const handleCreditBoostingSignup = () => {
     // Track ecommerce add to cart event (service signup)
     snowplowTracker.trackAddToCart({
@@ -270,8 +345,8 @@ function CreditReport() {
       currency: 'USD',
     })
 
-    // Navigate to the score boost page
-    navigate({ to: '/score-boost' })
+    // Navigate to the score boost step 1
+    navigate({ to: '/score-boost/step-1' })
   }
 
   return (
@@ -310,7 +385,7 @@ function CreditReport() {
         </div>
 
         {/* Credit Boosting Banner for scores < 700 */}
-        {showCreditBoosting && (
+        {showCreditBoosting && !boostData && (
           <div className="mb-6 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -332,6 +407,109 @@ function CreditReport() {
                 Get Started
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Credit Boost Summary - Show after completion */}
+        {boostData && (
+          <div className="mb-6 bg-gradient-to-br from-green-500/20 to-cyan-500/20 border border-green-500/30 rounded-xl p-6">
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-green-400" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-1">Credit Boost Active</h2>
+                  <p className="text-gray-300 text-sm">
+                    Your credit file has been updated with bill payment history
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-gray-400 text-xs mb-1">Score Increase</p>
+                <p className="text-3xl font-bold text-green-400">+{boostData.boostAmount}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Connected Bank Accounts */}
+              <div className="bg-slate-800/50 rounded-lg p-4">
+                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-cyan-400" />
+                  Connected Bank Accounts ({boostData.bankAccounts.length})
+                </h3>
+                <div className="space-y-2">
+                  {boostData.bankAccounts.map((account, index) => (
+                    <div key={index} className="bg-slate-700/50 rounded-lg p-3">
+                      <p className="text-white font-medium text-sm">{account.name}</p>
+                      <p className="text-gray-400 text-xs">{account.type} ••••{account.last4}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Synchronized Bills */}
+              <div className="bg-slate-800/50 rounded-lg p-4">
+                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-cyan-400" />
+                  Synchronized Bills ({boostData.bills.length})
+                </h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {boostData.bills.map((bill, index) => {
+                    const Icon = getBillIcon(bill.name)
+                    return (
+                      <div key={index} className="bg-slate-700/50 rounded-lg p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Icon className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                          <div>
+                            <p className="text-white font-medium text-xs">{bill.name}</p>
+                            <p className="text-gray-400 text-xs">{bill.provider}</p>
+                          </div>
+                        </div>
+                        <p className="text-gray-400 text-xs">{bill.payments} payments</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Period Information */}
+            <div className="bg-slate-800/50 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-semibold mb-1 flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-cyan-400" />
+                    Payment History Period
+                  </h3>
+                  <p className="text-gray-400 text-sm">
+                    Analyzed {boostData.periodMonths} months of payment history from your connected accounts
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-cyan-400">{boostData.periodMonths}</p>
+                  <p className="text-gray-400 text-xs">months</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            {generateRecommendations(boostData, reportData).length > 0 && (
+              <div className="bg-slate-800/50 rounded-lg p-4">
+                <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-yellow-400" />
+                  Recommendations
+                </h3>
+                <ul className="space-y-2">
+                  {generateRecommendations(boostData, reportData).map((rec, index) => (
+                    <li key={index} className="flex items-start gap-2 text-gray-300 text-sm">
+                      <span className="text-yellow-400 mt-0.5">•</span>
+                      <span>{rec}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
