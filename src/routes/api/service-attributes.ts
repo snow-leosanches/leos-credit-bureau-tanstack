@@ -20,6 +20,7 @@ function getSignalsInstance(): Signals | null {
   try {
     // Support sandbox mode if sandboxToken is provided
     if (sandboxToken) {
+      console.log('Initializing Signals with sandbox token mode')
       return new Signals({
         baseUrl,
         sandboxToken,
@@ -28,13 +29,21 @@ function getSignalsInstance(): Signals | null {
 
     // Otherwise use regular API key mode
     if (!apiKey || !apiKeyId || !organizationId) {
-      console.error('Missing required parameters: apiKey, apiKeyId, and organizationId')
-      console.error('apiKey', apiKey)
-      console.error('apiKeyId', apiKeyId)
-      console.error('organizationId', organizationId)
+      console.error('Missing required parameters for API key mode:')
+      console.error('- apiKey:', apiKey ? '***set***' : 'MISSING')
+      console.error('- apiKeyId:', apiKeyId ? '***set***' : 'MISSING')
+      console.error('- organizationId:', organizationId ? '***set***' : 'MISSING')
+      console.error('Available env vars:', {
+        hasBaseUrl: !!baseUrl,
+        hasApiKey: !!apiKey,
+        hasApiKeyId: !!apiKeyId,
+        hasOrgId: !!organizationId,
+        hasSandboxToken: !!sandboxToken,
+      })
       return null
     }
 
+    console.log('Initializing Signals with API key mode')
     return new Signals({
       baseUrl,
       apiKey,
@@ -66,23 +75,52 @@ export const Route = createFileRoute('/api/service-attributes')({
 
           const signals = getSignalsInstance()
           if (!signals) {
+            console.error('Snowplow Signals instance is null - check environment variables')
             return json(
-              { error: 'Snowplow Signals not configured on server' },
+              { 
+                error: 'Snowplow Signals not configured on server',
+                details: 'Check that environment variables are set in Vercel'
+              },
               { status: 500 }
             )
           }
 
+          console.log('Fetching service attributes with:', { attributeKey, identifier, name })
+          
           const attributes = await signals.getServiceAttributes({
             attribute_key: attributeKey,
             identifier,
             name,
           })
 
+          console.log('Service attributes response:', attributes)
+
+          // Handle empty or null responses
+          if (!attributes || (typeof attributes === 'object' && Object.keys(attributes).length === 0)) {
+            return json(
+              { 
+                message: 'No attributes found',
+                attributeKey,
+                identifier,
+                name,
+                attributes: attributes || {}
+              },
+              { status: 200 }
+            )
+          }
+
           return json(attributes)
         } catch (error) {
           console.error('Error fetching service attributes:', error)
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          const errorStack = error instanceof Error ? error.stack : undefined
+          
           return json(
-            { error: `Failed to fetch service attributes: ${error}` },
+            { 
+              error: 'Failed to fetch service attributes',
+              message: errorMessage,
+              stack: process.env.NODE_ENV === 'development' ? errorStack : undefined
+            },
             { status: 500 }
           )
         }
