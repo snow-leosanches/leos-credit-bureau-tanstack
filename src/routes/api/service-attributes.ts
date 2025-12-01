@@ -4,15 +4,16 @@ import { Signals } from '@snowplow/signals-node'
 
 // Initialize Signals instance on the server side
 function getSignalsInstance(): Signals | null {
-  // Use import.meta.env for Vite environment variables (works on both client and server)
-  const baseUrl = import.meta.env.VITE_SNOWPLOW_SIGNALS_ENDPOINT
-  const apiKey = import.meta.env.VITE_SNOWPLOW_SIGNALS_API_KEY
-  const apiKeyId = import.meta.env.VITE_SNOWPLOW_SIGNALS_API_KEY_ID
-  const organizationId = import.meta.env.VITE_SNOWPLOW_SIGNALS_ORG_ID
-  const sandboxToken = import.meta.env.VITE_SNOWPLOW_SIGNALS_SANDBOX_TOKEN
+  // Use process.env for server-side access to private environment variables
+  // These are NOT exposed to the client bundle (unlike VITE_ prefixed vars)
+  const baseUrl = process.env.SNOWPLOW_SIGNALS_ENDPOINT || process.env.VITE_SNOWPLOW_SIGNALS_ENDPOINT
+  const apiKey = process.env.SNOWPLOW_SIGNALS_API_KEY || process.env.VITE_SNOWPLOW_SIGNALS_API_KEY
+  const apiKeyId = process.env.SNOWPLOW_SIGNALS_API_KEY_ID || process.env.VITE_SNOWPLOW_SIGNALS_API_KEY_ID
+  const organizationId = process.env.SNOWPLOW_SIGNALS_ORG_ID || process.env.VITE_SNOWPLOW_SIGNALS_ORG_ID
+  const sandboxToken = process.env.SNOWPLOW_SIGNALS_SANDBOX_TOKEN || process.env.VITE_SNOWPLOW_SIGNALS_SANDBOX_TOKEN
 
   if (!baseUrl) {
-    console.error('Missing VITE_SNOWPLOW_SIGNALS_ENDPOINT environment variable')
+    console.error('Missing SNOWPLOW_SIGNALS_ENDPOINT or VITE_SNOWPLOW_SIGNALS_ENDPOINT environment variable')
     return null
   }
 

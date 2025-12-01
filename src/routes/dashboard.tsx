@@ -261,7 +261,7 @@ function Dashboard() {
         </div>
 
         {/* Credit Boost Continuation Banner */}
-        {stepNumber === 1 && (
+        {stepNumber === 2 && (
           <div className="mb-6 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-xl p-6 backdrop-blur-sm">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
@@ -286,7 +286,7 @@ function Dashboard() {
           </div>
         )}
 
-        {stepNumber === 2 && (
+        {stepNumber === 3 && (
           <div className="mb-6 bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-6 backdrop-blur-sm">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0">
