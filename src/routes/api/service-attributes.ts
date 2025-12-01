@@ -3,7 +3,7 @@ import { json } from '@tanstack/react-start'
 import { Signals } from '@snowplow/signals-node'
 
 // Result type for Signals instance initialization
-type SignalsInitResult = 
+type SignalsInitResult =
   | { success: true; signals: Signals }
   | { success: false; error: string; details: Record<string, boolean> }
 
@@ -87,72 +87,77 @@ export const Route = createFileRoute('/api/service-attributes')({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const url = new URL(request.url)
-        const attributeKey = url.searchParams.get('attribute_key')
-        const identifier = url.searchParams.get('identifier')
-        const name = url.searchParams.get('name')
-
         try {
-          if (!attributeKey || !identifier || !name) {
-            return json(
-              { error: 'Missing required parameters: attribute_key, identifier, and name are required' },
-              { status: 400 }
-            )
-          }
+          const url = new URL(request.url)
+          const attributeKey = url.searchParams.get('attribute_key')
+          const identifier = url.searchParams.get('identifier')
+          const name = url.searchParams.get('name')
 
-          const signalsResult = getSignalsInstance()
-          if (!signalsResult.success) {
+          try {
+            if (!attributeKey || !identifier || !name) {
+              return json(
+                { error: 'Missing required parameters: attribute_key, identifier, and name are required' },
+                { status: 400 }
+              )
+            }
+
+            const signalsResult = getSignalsInstance()
+            if (!signalsResult.success) {
+              return json(
+                {
+                  error: 'Snowplow Signals not configured on server',
+                  message: signalsResult.error,
+                  diagnostic: signalsResult.details,
+                  hint: 'Ensure environment variables are set in Vercel project settings'
+                },
+                { status: 500 }
+              )
+            }
+
+            const signals = signalsResult.signals
+
+            const attributes = await signals.getServiceAttributes({
+              attribute_key: attributeKey,
+              identifier,
+              name,
+            })
+
+            // Handle empty or null responses
+            if (!attributes || (typeof attributes === 'object' && Object.keys(attributes).length === 0)) {
+              return json(
+                {
+                  message: 'No attributes found',
+                  attributeKey,
+                  identifier,
+                  name,
+                  attributes: attributes || {}
+                },
+                { status: 200 }
+              )
+            }
+
+            return json(attributes)
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error)
+            const errorStack = error instanceof Error ? error.stack : undefined
+
             return json(
-              { 
-                error: 'Snowplow Signals not configured on server',
-                message: signalsResult.error,
-                diagnostic: signalsResult.details,
-                hint: 'Ensure environment variables are set in Vercel project settings'
+              {
+                error: 'Failed to fetch service attributes',
+                message: errorMessage,
+                requestParams: {
+                  attributeKey,
+                  identifier,
+                  name,
+                },
+                ...(process.env.NODE_ENV === 'development' && errorStack ? { stack: errorStack } : {})
               },
               { status: 500 }
             )
           }
-
-          const signals = signalsResult.signals
-          
-          const attributes = await signals.getServiceAttributes({
-            attribute_key: attributeKey,
-            identifier,
-            name,
-          })
-
-          // Handle empty or null responses
-          if (!attributes || (typeof attributes === 'object' && Object.keys(attributes).length === 0)) {
-            return json(
-              { 
-                message: 'No attributes found',
-                attributeKey,
-                identifier,
-                name,
-                attributes: attributes || {}
-              },
-              { status: 200 }
-            )
-          }
-
-          return json(attributes)
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error)
-          const errorStack = error instanceof Error ? error.stack : undefined
-          
-          return json(
-            { 
-              error: 'Failed to fetch service attributes',
-              message: errorMessage,
-              requestParams: {
-                attributeKey,
-                identifier,
-                name,
-              },
-              ...(process.env.NODE_ENV === 'development' && errorStack ? { stack: errorStack } : {})
-            },
-            { status: 500 }
-          )
+          console.error('Error fetching service attributes:', error)
+          return json({ error: 'Failed to fetch service attributes' }, { status: 500 })
         }
       },
     },
