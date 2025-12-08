@@ -2,19 +2,68 @@ Welcome to your new TanStack app!
 
 # Getting Started
 
-Before running this application, at least locally, make sure you have a `.env` file define with at least the following:
+Before running this application, at least locally, make sure you have a `.env` file defined with the following environment variables.
+
+## Environment Variables
+
+### Client-Side Variables (VITE_ prefix - Safe to Expose)
+
+These variables are exposed to the client bundle and can be safely used in browser code:
+
+```env
+# Snowplow Collector URL for browser tracking
+VITE_SNOWPLOW_COLLECTOR_URL=your-snowplow-cdi-collector-url
+
+# Snowplow Signals endpoint (used for browser plugin)
+VITE_SNOWPLOW_SIGNALS_ENDPOINT=your-signals-endpoint.svc.snplow.net
+```
+
+### Server-Side Variables (No VITE_ prefix - Private)
+
+**⚠️ IMPORTANT:** These variables are **NOT** exposed to the client bundle and should be kept private. Use these for server-side API routes that require authentication.
+
+```env
+# Snowplow Signals endpoint (server-side, can also use VITE_ version as fallback)
+SNOWPLOW_SIGNALS_ENDPOINT=your-signals-endpoint.svc.snplow.net
+
+# API Key authentication (choose one: API Key mode OR Sandbox mode)
+SNOWPLOW_SIGNALS_API_KEY=your-api-key
+SNOWPLOW_SIGNALS_API_KEY_ID=your-api-key-id
+SNOWPLOW_SIGNALS_ORG_ID=your-organization-id
+
+# OR use Sandbox mode (alternative to API Key mode)
+SNOWPLOW_SIGNALS_SANDBOX_TOKEN=your-sandbox-token
+```
+
+**Security Note:**
+- Variables with `VITE_` prefix are bundled into the client code and visible to users
+- Variables without `VITE_` prefix are only available server-side via `process.env`
+- **Never** use `VITE_` prefix for API keys, tokens, or other sensitive credentials
+- The server-side code supports both naming conventions for backward compatibility, but prefer non-`VITE_` versions for sensitive data
+
+### Minimum Required Variables
+
+For basic functionality, you need at minimum:
 
 ```env
 VITE_SNOWPLOW_COLLECTOR_URL=your-snowplow-cdi-collector-url
 VITE_SNOWPLOW_SIGNALS_ENDPOINT=your-signals-endpoint.svc.snplow.net
 ```
 
-To run this application:
+For API routes to work, you also need either:
+- API Key mode: `SNOWPLOW_SIGNALS_ENDPOINT`, `SNOWPLOW_SIGNALS_API_KEY`, `SNOWPLOW_SIGNALS_API_KEY_ID`, `SNOWPLOW_SIGNALS_ORG_ID`
+- OR Sandbox mode: `SNOWPLOW_SIGNALS_ENDPOINT`, `SNOWPLOW_SIGNALS_SANDBOX_TOKEN`
+
+## Running the Application
+
+To run this application locally:
 
 ```bash
 npm install
 npm run dev
 ```
+
+The application will start on `http://localhost:3000` by default.
 
 # Building For Production
 
@@ -23,6 +72,55 @@ To build this application for production:
 ```bash
 npm run build
 ```
+
+## Deployment
+
+### Vercel Deployment
+
+This application is configured to deploy on Vercel using TanStack Start with Nitro. The framework automatically handles:
+
+- API routes (serverless functions)
+- Client-side routing
+- Server-side rendering
+
+**Environment Variables in Vercel:**
+
+1. Go to your Vercel project settings
+2. Navigate to "Environment Variables"
+3. Add all the environment variables listed above
+4. **Important:** For production, use the non-`VITE_` prefixed versions for sensitive credentials:
+   - `SNOWPLOW_SIGNALS_API_KEY` (not `VITE_SNOWPLOW_SIGNALS_API_KEY`)
+   - `SNOWPLOW_SIGNALS_API_KEY_ID` (not `VITE_SNOWPLOW_SIGNALS_API_KEY_ID`)
+   - `SNOWPLOW_SIGNALS_ORG_ID` (not `VITE_SNOWPLOW_SIGNALS_ORG_ID`)
+
+The endpoint `/api/service-attributes` will automatically be available as a serverless function. If you encounter issues, check that:
+- Environment variables are set in Vercel project settings
+- The API route returns proper error responses (check the response body for diagnostic information)
+
+## Snowplow Integration
+
+This application integrates with Snowplow for analytics and Signals for real-time interventions.
+
+### Client-Side Tracking
+
+The application uses `@snowplow/browser-tracker` for client-side event tracking. The tracker is initialized in `src/lib/snowplow.ts` and includes:
+- Button click tracking
+- Link click tracking
+- Page view tracking
+- Performance navigation timing
+- Signals browser plugin for interventions
+
+### Server-Side Signals API
+
+The application uses `@snowplow/signals-node` for server-side Signals operations. This is used in API routes to:
+- Fetch service attributes
+- Perform authenticated Signals operations
+
+**Security:** All sensitive credentials (API keys, tokens) are kept server-side only and never exposed to the client bundle.
+
+### SnowplowSignalsContext
+
+The `SnowplowSignalsContext` provides the Signals endpoint URL to client components. It only exposes the `baseUrl` (safe to expose), not sensitive credentials. For authenticated operations, use the API endpoints instead.
 
 ## Testing
 
@@ -49,6 +147,41 @@ npm run check
 ```
 
 
+
+## API Routes
+
+This project uses TanStack Start's API route functionality. API routes are defined in `src/routes/api/` and automatically become serverless functions when deployed.
+
+### Example API Route
+
+API routes use the `server.handlers` configuration:
+
+```tsx
+import { createFileRoute } from '@tanstack/react-router'
+import { json } from '@tanstack/react-start'
+
+export const Route = createFileRoute('/api/example')({
+  server: {
+    handlers: {
+      GET: async ({ request }) => {
+        // Server-side code - has access to process.env (private variables)
+        return json({ message: 'Hello from API' })
+      },
+    },
+  },
+})
+```
+
+**Important:**
+- API routes run server-side and have access to `process.env` (non-`VITE_` variables)
+- Use `json()` from `@tanstack/react-start` to return JSON responses
+- Error responses should include diagnostic information for debugging
+
+### Available API Routes
+
+- `/api/service-attributes` - Fetches Snowplow Signals service attributes
+  - Query parameters: `attribute_key`, `identifier`, `name`
+  - Returns diagnostic information if environment variables are missing
 
 ## Routing
 This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
