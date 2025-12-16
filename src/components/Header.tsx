@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import { clearUserData } from '@snowplow/browser-tracker'
+import { clearUTMParams } from '../lib/utm'
 
 export default function Header() {
   const navigate = useNavigate()
@@ -53,6 +54,9 @@ export default function Header() {
     
     // Clear Snowplow user data
     clearUserData()
+    
+    // Clear UTM parameters
+    clearUTMParams()
     
     // Close navigation panel
     setIsOpen(false)

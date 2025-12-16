@@ -4,6 +4,7 @@ import { Lock } from 'lucide-react'
 import { clearUserData } from '@snowplow/browser-tracker';
 
 import { snowplowTracker } from '../lib/snowplow'
+import { getStoredUTMParams, simulateUTMParams } from '../lib/utm'
 
 export const Route = createFileRoute('/login')({
   component: Login,
@@ -28,6 +29,19 @@ function Login() {
 
   useEffect(() => {
     clearUserData()
+    
+    // Check if UTM parameters are stored and apply them to the URL if not already present
+    const stored = getStoredUTMParams()
+    if (stored && Object.keys(stored).length > 0) {
+      const currentURL = window.location.href
+      const hasUTM = currentURL.includes('utm_source') || 
+                     currentURL.includes('utm_medium') || 
+                     currentURL.includes('utm_campaign')
+      if (!hasUTM) {
+        simulateUTMParams(stored)
+      }
+    }
+    
     // Track page view when login page is loaded
     try {
       if (snowplowTracker) {

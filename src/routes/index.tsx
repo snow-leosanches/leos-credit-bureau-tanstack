@@ -13,15 +13,33 @@ import {
   Bell,
   TrendingDown,
 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { snowplowTracker } from '../lib/snowplow'
+import { simulateUTMParams, getDefaultUTMParams, getStoredUTMParams } from '../lib/utm'
+import { BarChart } from 'lucide-react'
 
 export const Route = createFileRoute('/')({
   component: Home,
 })
 
 function Home() {
+  const [utmActive, setUtmActive] = useState(false)
+
   useEffect(() => {
+    // Check if UTM parameters are already stored
+    const stored = getStoredUTMParams()
+    if (stored && Object.keys(stored).length > 0) {
+      setUtmActive(true)
+      // Apply stored UTM parameters to current URL if not already present
+      const currentURL = window.location.href
+      const hasUTM = currentURL.includes('utm_source') || 
+                     currentURL.includes('utm_medium') || 
+                     currentURL.includes('utm_campaign')
+      if (!hasUTM) {
+        simulateUTMParams(stored)
+      }
+    }
+
     // Track page view
     try {
       if (snowplowTracker) {
@@ -31,6 +49,21 @@ function Home() {
       console.error('Failed to track page view:', e)
     }
   }, [])
+
+  const handleSimulateUTM = () => {
+    const defaultParams = getDefaultUTMParams()
+    simulateUTMParams(defaultParams)
+    setUtmActive(true)
+    
+    // Trigger a new page view to capture the UTM parameters
+    try {
+      if (snowplowTracker) {
+        snowplowTracker.trackPageView()
+      }
+    } catch (e) {
+      console.error('Failed to track page view:', e)
+    }
+  }
 
   const features = [
     {
@@ -134,7 +167,7 @@ function Home() {
             Access your FICO® Score, monitor your credit report, protect your identity, and improve 
             your credit score—all in one secure customer portal.
           </p>
-          <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center gap-4">
             <Link
               to="/login"
               data-sp-button-label="Get Started - Hero"
@@ -144,6 +177,25 @@ function Home() {
               Get Started
               <ArrowRight className="w-5 h-5" />
             </Link>
+            <button
+              onClick={handleSimulateUTM}
+              data-sp-button-label="Simulate UTM"
+              className={`px-8 py-4 bg-gradient-to-r font-semibold rounded-lg transition-colors shadow-lg flex items-center gap-2 text-white ${
+                utmActive
+                  ? 'from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-green-500/50'
+                  : 'from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 shadow-purple-500/50'
+              }`}
+              title="Simulate UTM parameters to demonstrate Snowplow tracking"
+            >
+              <BarChart className="w-5 h-5" />
+              {utmActive ? 'UTM Active ✓' : 'Simulate UTM'}
+            </button>
+            {utmActive && (
+              <p className="text-xs text-gray-400 max-w-md text-center">
+                UTM parameters are active and will persist across all pages until logout. 
+                Snowplow is automatically capturing these parameters.
+              </p>
+            )}
           </div>
         </div>
       </section>
