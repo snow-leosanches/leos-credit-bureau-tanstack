@@ -29,6 +29,7 @@ function IdentityProtection() {
   const [customerId, setCustomerId] = useState<number | null>(null)
   const [isProtected, setIsProtected] = useState(false)
   const [showSignup, setShowSignup] = useState(false)
+  const [showEducationalContent, setShowEducationalContent] = useState(false)
 
   useEffect(() => {
     // Check if user is authenticated
@@ -67,6 +68,10 @@ function IdentityProtection() {
 
   const handleLearnMore = () => {
     setShowSignup(true)
+  }
+
+  const handleReviewInfo = () => {
+    setShowEducationalContent(true)
   }
 
   if (!customerId) {
@@ -174,7 +179,7 @@ function IdentityProtection() {
     'Monitor your accounts regularly for suspicious activity',
   ]
 
-  if (isProtected) {
+  if (isProtected && !showEducationalContent) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-8 px-6">
         <div className="max-w-7xl mx-auto">
@@ -192,10 +197,17 @@ function IdentityProtection() {
               <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
                 <Shield className="w-6 h-6 text-green-400" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h2 className="text-2xl font-bold text-white mb-1">Identity Protection Active</h2>
                 <p className="text-gray-300">Your identity is being monitored 24/7 across all three credit bureaus</p>
               </div>
+              <button
+                onClick={handleReviewInfo}
+                data-sp-button-label="Review Identity Protection Information"
+                className="px-6 py-3 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 text-cyan-400 font-semibold rounded-lg transition-colors"
+              >
+                Review Protection Info
+              </button>
             </div>
           </div>
 
@@ -270,7 +282,10 @@ function IdentityProtection() {
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-8 px-6">
         <div className="max-w-3xl mx-auto">
           <button
-            onClick={() => setShowSignup(false)}
+            onClick={() => {
+              setShowSignup(false)
+              setShowEducationalContent(false)
+            }}
             className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -328,11 +343,17 @@ function IdentityProtection() {
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 py-8 px-6">
       <div className="max-w-7xl mx-auto">
         <button
-          onClick={() => navigate({ to: '/dashboard' })}
+          onClick={() => {
+            if (isProtected && showEducationalContent) {
+              setShowEducationalContent(false)
+            } else {
+              navigate({ to: '/dashboard' })
+            }
+          }}
           className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span>Back to Dashboard</span>
+          <span>{isProtected && showEducationalContent ? 'Back to Protection Status' : 'Back to Dashboard'}</span>
         </button>
 
         {/* Hero Section */}
@@ -470,28 +491,44 @@ function IdentityProtection() {
         {/* CTA */}
         <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-xl p-8 text-center">
           <Shield className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold text-white mb-4">Get Protected Today</h2>
+          <h2 className="text-3xl font-bold text-white mb-4">
+            {isProtected ? 'Your Protection is Active' : 'Get Protected Today'}
+          </h2>
           <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-            Join millions of customers who trust Leo's Credit Bureau for comprehensive identity theft protection. 
-            Monitor all three credit bureaus, get dark web alerts, and have peace of mind with 24/7 protection.
+            {isProtected 
+              ? 'You\'re already protected! Review the information above to learn more about how identity protection works and what features you have access to.'
+              : 'Join millions of customers who trust Leo\'s Credit Bureau for comprehensive identity theft protection. Monitor all three credit bureaus, get dark web alerts, and have peace of mind with 24/7 protection.'}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {!isProtected && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={handleLearnMore}
+                data-sp-button-label="Enable Protection"
+                className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
+              >
+                Enable Protection
+              </button>
+              <button
+                onClick={() => navigate({ to: '/dashboard' })}
+                data-sp-button-label="Learn More - Identity Protection"
+                className="px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors"
+              >
+                Learn More
+              </button>
+            </div>
+          )}
+          {isProtected && (
             <button
-              onClick={handleLearnMore}
-              data-sp-button-label="Enable Protection"
+              onClick={() => setShowEducationalContent(false)}
+              data-sp-button-label="Back to Protection Status"
               className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
             >
-              Enable Protection
+              Back to Protection Status
             </button>
-            <button
-              onClick={() => navigate({ to: '/dashboard' })}
-              data-sp-button-label="Learn More - Identity Protection"
-              className="px-8 py-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition-colors"
-            >
-              Learn More
-            </button>
-          </div>
-          <p className="text-gray-400 text-sm mt-4">Free for all Leo's Credit Bureau customers • No credit card required</p>
+          )}
+          {!isProtected && (
+            <p className="text-gray-400 text-sm mt-4">Free for all Leo's Credit Bureau customers • No credit card required</p>
+          )}
         </div>
       </div>
     </div>
